@@ -62,8 +62,8 @@ config:
           docker push $DOCKER_REPO:$DOCKER_TAG
         fi
     - verify: |
-        docker manifest inspect $DOCKER_REPO:latest $DOCKERFILE_PATH
-        docker manifest inspect $DOCKER_REPO:$DOCKER_TAG $DOCKERFILE_PATH
+        docker manifest inspect $DOCKER_REPO:latest
+        docker manifest inspect $DOCKER_REPO:$DOCKER_TAG
     - save-tag-to-meta: meta set docker_tag $DOCKER_TAG && meta get docker_tag
   secrets:
     - DOCKER_REGISTRY_TOKEN
