@@ -1,4 +1,4 @@
-name: sd/dind
+name: sd/dindx
 version: '2.0.0'
 description: Template for building Docker containers using DinD
 maintainer: screwdriver-oss@yahooinc.com
