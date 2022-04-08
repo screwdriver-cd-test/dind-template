@@ -15,4 +15,4 @@ jobs:
     steps:
       - install_prerequisites: npm install -g screwdriver-template-main
       - publish: template-publish
-      - autotag: template-tag --name sd/dindx --tag latest
+      - autotag: template-tag --name sd/dind --tag latest
