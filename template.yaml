@@ -71,8 +71,12 @@ config:
           echo "skipping push"
         fi
     - verify: |
-        docker manifest inspect ${DOCKER_REPO}:latest
-        docker manifest inspect ${DOCKER_REPO}:${DOCKER_TAG}
+        if [[ -z "${SD_PULL_REQUEST}" && $DOCKER_MULTI_PLATFORM_BUILDS_ENABLED -eq 1 ]]; then
+          docker manifest inspect ${DOCKER_REPO}:latest
+          docker manifest inspect ${DOCKER_REPO}:${DOCKER_TAG}
+        else
+          echo "skip verifying"
+        fi
     - save-tag-to-meta: meta set docker_tag $DOCKER_TAG && meta get docker_tag
   secrets:
     - DOCKER_REGISTRY_TOKEN
