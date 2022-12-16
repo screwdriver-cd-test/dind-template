@@ -24,6 +24,15 @@ config:
         ./ci/git-latest.sh
         if [[ -z "${SD_PULL_REQUEST}" && $DOCKER_MULTI_PLATFORM_BUILDS_ENABLED -eq 1 ]]; then
           echo "Setting up buildx..."
+          echo "DOCKER_HOST: $DOCKER_HOST, DOCKER_CERT_PATH: $DOCKER_CERT_PATH, DOCKER_TLS_VERIFY: $DOCKER_TLS_VERIFY"
+          docker_tls_dir=${DOCKER_CERT_PATH:-/certs/client}
+          ls $docker_tls_dir
+          until [[ -f ${docker_tls_dir}/ca.pem && -f ${docker_tls_dir}/cert.pem && -f ${docker_tls_dir}/key.pem ]]; do
+            echo "waiting for docker tls pem files"
+            ls $docker_tls_dir
+            sleep 5
+          done
+          
           mkdir -p /usr/local/lib/docker/cli-plugins/
           curl -s -L https://github.com/docker/buildx/releases/download/v0.9.1/buildx-v0.9.1.linux-amd64 -o /usr/local/lib/docker/cli-plugins/docker-buildx
           chmod a+x /usr/local/lib/docker/cli-plugins/docker-buildx
@@ -35,13 +44,7 @@ config:
           if [[ -n "$DOCKER_HOST" ]]; then
             unset DOCKER_HOST
           fi
-          docker_tls_dir=${DOCKER_CERT_PATH:-/certs/client}
-          ls $docker_tls_dir
-          until [[ -f ${docker_tls_dir}/ca.pem && -f ${docker_tls_dir}/cert.pem && -f ${docker_tls_dir}/key.pem ]]; do
-            echo "waiting for docker tls pem files"
-            ls $docker_tls_dir
-            sleep 5
-          done
+          
           docker context create sd-context --docker "host=tcp://localhost:2376,ca=${docker_tls_dir}/ca.pem,cert=${docker_tls_dir}/cert.pem,key=${docker_tls_dir}/key.pem"
           docker context use sd-context
           echo "Listing docker contexts..."
