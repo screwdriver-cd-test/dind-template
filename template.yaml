@@ -36,6 +36,7 @@ config:
             unset DOCKER_HOST
           fi
           docker_tls_dir=${DOCKER_CERT_PATH:-/certs/client}
+          ls $docker_tls_dir
           until [[ -f ${docker_tls_dir}/ca.pem && -f ${docker_tls_dir}/cert.pem && -f ${docker_tls_dir}/key.pem ]]; do
             echo "waiting for docker tls pem files"
             ls $docker_tls_dir
