@@ -36,6 +36,11 @@ config:
             unset DOCKER_HOST
           fi
           docker_tls_dir=${DOCKER_CERT_PATH:-/certs/client}
+          until [[ -f ${docker_tls_dir}/ca.pem && -f ${docker_tls_dir}/cert.pem && -f ${docker_tls_dir}/key.pem ]]; do
+            echo "waiting for docker tls pem files"
+            ls $docker_tls_dir
+            sleep 5
+          done
           docker context create sd-context --docker "host=tcp://localhost:2376,ca=${docker_tls_dir}/ca.pem,cert=${docker_tls_dir}/cert.pem,key=${docker_tls_dir}/key.pem"
           docker context use sd-context
           echo "Listing docker contexts..."
