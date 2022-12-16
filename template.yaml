@@ -27,9 +27,16 @@ config:
           echo "DOCKER_HOST: $DOCKER_HOST, DOCKER_CERT_PATH: $DOCKER_CERT_PATH, DOCKER_TLS_VERIFY: $DOCKER_TLS_VERIFY"
           docker_tls_dir=${DOCKER_CERT_PATH:-/certs/client}
           ls $docker_tls_dir
+          
+          retry=0
           until [[ -f ${docker_tls_dir}/ca.pem && -f ${docker_tls_dir}/cert.pem && -f ${docker_tls_dir}/key.pem ]]; do
             echo "waiting for docker tls pem files"
             ls $docker_tls_dir
+            (( ++retry ))
+            if (( retry == 11 )); then
+              echo "timeout waiting for docker tls pem files"
+              exit 1
+            fi
             sleep 5
           done
           
