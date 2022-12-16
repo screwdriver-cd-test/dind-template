@@ -32,8 +32,8 @@ config:
           until [[ -f ${docker_tls_dir}/ca.pem && -f ${docker_tls_dir}/cert.pem && -f ${docker_tls_dir}/key.pem ]]; do
             echo "waiting for docker tls pem files"
             ls $docker_tls_dir
-            (( ++retry ))
-            if (( retry == 11 )); then
+            retry=$((retry+1))
+            if [[ $retry -eq "11" ]]; then
               echo "timeout waiting for docker tls pem files"
               exit 1
             fi
