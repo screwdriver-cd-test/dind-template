@@ -17,6 +17,7 @@ config:
     DOCKERFILE_PATH: '.'
     DOCKERFILE_NAME: Dockerfile
     DOCKER_BUILD_EXTRA_FLAGS: '--no-cache'
+    SKIP_LATEST: ''
   steps:
     - setup: |
         apk add git curl coreutils
@@ -68,25 +69,36 @@ config:
         fi
     - build-push: |
         DOCKER_TAG=`cat VERSION`
+        DOCKER_TAG_FLAGS="-t ${DOCKER_REPO}:${DOCKER_TAG}"
+            
+        if [ -z "$SKIP_LATEST" ]; then
+          DOCKER_TAG_FLAGS="-t ${DOCKER_REPO}:latest $DOCKER_TAG_FLAGS"
+        fi
         
         if [ -z "${SD_PULL_REQUEST}" ]; then
           docker login --username $DOCKER_REGISTRY_USER --password $DOCKER_REGISTRY_TOKEN
           
           if [[ $DOCKER_MULTI_PLATFORM_BUILDS_ENABLED -eq 1 ]]; then
-            docker buildx build --push --progress plain --platform $DOCKER_TARGET_PLATFORMS --cache-from ${DOCKER_REPO}:latest --build-arg BUILDKIT_INLINE_CACHE=1 $DOCKER_BUILD_EXTRA_FLAGS -t ${DOCKER_REPO}:latest -t ${DOCKER_REPO}:${DOCKER_TAG} -f $DOCKERFILE_NAME $DOCKERFILE_PATH
+            docker buildx build --push --progress plain --platform $DOCKER_TARGET_PLATFORMS --cache-from ${DOCKER_REPO}:latest --build-arg BUILDKIT_INLINE_CACHE=1 $DOCKER_BUILD_EXTRA_FLAGS $DOCKER_TAG_FLAGS -f $DOCKERFILE_NAME $DOCKERFILE_PATH
           else
-            docker build $DOCKER_BUILD_EXTRA_FLAGS -t ${DOCKER_REPO}:latest -t ${DOCKER_REPO}:${DOCKER_TAG} -f $DOCKERFILE_NAME $DOCKERFILE_PATH
-            docker push ${DOCKER_REPO}:latest
+            docker build $DOCKER_BUILD_EXTRA_FLAGS $DOCKER_TAG_FLAGS -f $DOCKERFILE_NAME $DOCKERFILE_PATH
             docker push ${DOCKER_REPO}:${DOCKER_TAG}
+            
+            if [ -z "$SKIP_LATEST" ]; then
+              docker push ${DOCKER_REPO}:latest
+            fi
           fi
         else
-          docker build $DOCKER_BUILD_EXTRA_FLAGS -t ${DOCKER_REPO}:latest -t ${DOCKER_REPO}:${DOCKER_TAG} -f $DOCKERFILE_NAME $DOCKERFILE_PATH
+          docker build $DOCKER_BUILD_EXTRA_FLAGS $DOCKER_TAG_FLAGS -f $DOCKERFILE_NAME $DOCKERFILE_PATH
           echo "skipping push"
         fi
     - verify: |
         if [[ -z "${SD_PULL_REQUEST}" && $DOCKER_MULTI_PLATFORM_BUILDS_ENABLED -eq 1 ]]; then
-          docker manifest inspect ${DOCKER_REPO}:latest
           docker manifest inspect ${DOCKER_REPO}:${DOCKER_TAG}
+          
+          if [ -z "$SKIP_LATEST" ]; then
+              docker manifest inspect ${DOCKER_REPO}:latest
+          fi
         else
           echo "skip verifying"
         fi
