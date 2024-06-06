@@ -69,6 +69,12 @@ config:
         fi
     - build-push: |
         DOCKER_TAG=`cat VERSION`
+
+        if [ -x "$DOCKER_TAG" ]; then
+          DOCKER_TAG=latest
+          SKIP_LATEST=1
+        fi
+        
         DOCKER_TAG_FLAGS="-t ${DOCKER_REPO}:${DOCKER_TAG}"
             
         if [ -z "$SKIP_LATEST" ]; then
