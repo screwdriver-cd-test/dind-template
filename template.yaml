@@ -3,7 +3,7 @@ version: '2.0.0'
 description: Template for building Docker containers using DinD
 maintainer: screwdriver-oss@yahooinc.com
 config:
-  image: docker:dind
+  image: docker:28.5.2-dind
   annotations:
     screwdriver.cd/cpu: MICRO
     screwdriver.cd/ram: LOW
